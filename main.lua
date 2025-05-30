@@ -671,7 +671,7 @@ local function initialize()
 		ver.Font = Enum.Font.Montserrat
 		task.spawn(function()
 			while true do
-				ver.Text = "InfilSense Lib - bkkpro1980\n\n"..libName.."\nVersion:\n"..version
+				ver.Text = "InfilSense UI Library - bkkpro1980\n\n"..libName.."\nVersion:\n"..version
 				task.wait()
 			end
 		end)
