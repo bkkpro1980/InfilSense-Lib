@@ -1,4 +1,7 @@
--- Developed by bkkpro1980. You are free to use this library, but please do not claim it as your own.
+-- Developed by bkkpro1980.
+-- You are free to use this library in your projects.
+-- However, please do not claim authorship or present it as your own work.
+-- Any such misrepresentation may result in appropriate action being taken.
 
 -- IGNORE
 
@@ -32,7 +35,7 @@ local pageNum = 1
 local lastPageNum
 local pagesAmount = 0
 local uiPages = {}
-local toggles = {}
+local values = {}
 
 --[[ FILE SYSTEM FUNCTIONS \]]--
 local HttpService = game:GetService("HttpService")
@@ -177,108 +180,108 @@ function randomString()
 end
 
 local function isValidKey(keyText)
-    keyText = keyText:gsub("Enum.KeyCode.", "")
+	keyText = keyText:gsub("Enum.KeyCode.", "")
 
-    return pcall(
-        function()
-            return Enum.KeyCode[keyText] ~= nil
-        end
-    )
+	return pcall(
+		function()
+			return Enum.KeyCode[keyText] ~= nil
+		end
+	)
 end
 
 local function stringToKeyCode(str)
-    local keyName = str:gsub("Enum.KeyCode.", "")
-    return Enum.KeyCode[keyName]
+	local keyName = str:gsub("Enum.KeyCode.", "")
+	return Enum.KeyCode[keyName]
 end
 
 local function manageKeybind(command, func, key)
-    if not command then return false end
+	if not command then return false end
 
-    if func then
-        --print("Binding key for command: " .. command .. " to key: " .. key.Name)
+	if func then
+		--print("Binding key for command: " .. command .. " to key: " .. key.Name)
 
-        configManager.add(command,"Keybinds",key.Name)
+		configManager.add(command,"Keybinds",key.Name)
 		CAS:UnbindAction(command)
-        CAS:BindAction(
-            command,
-            function(actionName, inputState, inputObject)
-                if inputState == Enum.UserInputState.End then
-                    toggles[command] = not toggles[command]
-					func(toggles[command])
-                end
-            end,
-            false,
-            key
-        )
+		CAS:BindAction(
+			command,
+			function(actionName, inputState, inputObject)
+				if inputState == Enum.UserInputState.End then
+					values[command] = not values[command]
+					func(values[command])
+				end
+			end,
+			false,
+			key
+		)
 
-        return true
-    else
-        configManager.remove(command,"Keybinds")
-        CAS:UnbindAction(command)
+		return true
+	else
+		configManager.remove(command,"Keybinds")
+		CAS:UnbindAction(command)
 		return false
-    end
+	end
 end
 
 function bindKey(capturingKey, connection, keybindlabel, command, commandFunc)
-    if capturingKey then return end
+	if capturingKey then return end
 
-    capturingKey = true
-    keybindlabel.Text = "Press a key...  (Click to unbind)"
-    local timeout = 5
-    local captureStart = tick()
+	capturingKey = true
+	keybindlabel.Text = "Press a key...  (Click to unbind)"
+	local timeout = 5
+	local captureStart = tick()
 
-    connection = UIS.InputBegan:Connect(function(input)
-        if tick() - captureStart > timeout then
-            keybindlabel.Text = "Capture Timed Out"
-            capturingKey = false
-            connection:Disconnect()
-            return
-        end
+	connection = UIS.InputBegan:Connect(function(input)
+		if tick() - captureStart > timeout then
+			keybindlabel.Text = "Capture Timed Out"
+			capturingKey = false
+			connection:Disconnect()
+			return
+		end
 
-        if input then
-            if input.UserInputType == Enum.UserInputType.Keyboard then
-                manageKeybind(command, commandFunc, input.KeyCode)
-                keybindlabel.Text = "Bound to: " .. tostring(input.KeyCode.Name)
-            elseif input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 or input.UserInputType == Enum.UserInputType.MouseButton3 then
-                manageKeybind(command)
-                keybindlabel.Text = "Click to set a keybind"
-            else
-                keybindlabel.Text = "Invalid Input!"
-                task.delay(1.5, function()
-                    keybindlabel.Text = "Click To Set A Keybind"
-                end)
-            end
-            capturingKey = false
-            connection:Disconnect()
-        end
-    end)
-    task.delay(timeout, function()
-        if capturingKey then
-            keybindlabel.Text = "Capture Timed Out"
-            task.delay(1.5, function()
-                keybindlabel.Text = "Click To Set A Keybind"
-            end)
-            capturingKey = false
-            if connection then
-                connection:Disconnect()
-            end
-        end
-    end)
+		if input then
+			if input.UserInputType == Enum.UserInputType.Keyboard then
+				manageKeybind(command, commandFunc, input.KeyCode)
+				keybindlabel.Text = "Bound to: " .. tostring(input.KeyCode.Name)
+			elseif input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 or input.UserInputType == Enum.UserInputType.MouseButton3 then
+				manageKeybind(command)
+				keybindlabel.Text = "Click to set a keybind"
+			else
+				keybindlabel.Text = "Invalid Input!"
+				task.delay(1.5, function()
+					keybindlabel.Text = "Click To Set A Keybind"
+				end)
+			end
+			capturingKey = false
+			connection:Disconnect()
+		end
+	end)
+	task.delay(timeout, function()
+		if capturingKey then
+			keybindlabel.Text = "Capture Timed Out"
+			task.delay(1.5, function()
+				keybindlabel.Text = "Click To Set A Keybind"
+			end)
+			capturingKey = false
+			if connection then
+				connection:Disconnect()
+			end
+		end
+	end)
 end
 
 local function startupFunc(command)
-    if not command then return false end
-    local config = loadConfig(saveFileLoc..".json")
-    config = config["Startup"] and config["Startup"][command] or false
-    
-    if not config then
-        print("Setting startup for command: " .. command)
-        configManager.add(command,"Startup",true)
-        return true
-    else
-        configManager.remove(command,"Startup")
+	if not command then return false end
+	local config = loadConfig(saveFileLoc..".json")
+	config = config["Startup"] and config["Startup"][command] or false
+	
+	if not config then
+		print("Setting startup for command: " .. command)
+		configManager.add(command,"Startup",true)
+		return true
+	else
+		configManager.remove(command,"Startup")
 		return false
-    end
+	end
 end
 -- HELPER FUNCTIONS
 
@@ -295,6 +298,176 @@ function module:SetSaveFileName(name)
 end
 
 local guiClosed = false
+local tween1
+local tween2
+local function toggleGui(actionName, inputState, _, bg, ov)
+	if (actionName == "MenuToggle" and inputState == Enum.UserInputState.Begin) or bg == false or ov then
+		if bg == nil then bg = true end
+		if guiClosed then
+			if tween1 then if tween1.PlaybackState == Enum.PlaybackState.Playing then tween1:Cancel() end end
+			if tween2 then if tween2.PlaybackState == Enum.PlaybackState.Playing then tween2:Cancel() end end
+			tween1 = TS:Create(container, ti, {Position = UDim2.new(.5, 0, .5, 0)})
+			if bg then
+				tween2 = TS:Create(background, ti, {Position = UDim2.new(.5, 0, .5, 0)})
+				tween2:Play()
+			end
+			tween1:Play()
+			guiClosed = false
+			close.Modal = true
+		else
+			if tween1 then if tween1.PlaybackState == Enum.PlaybackState.Playing then tween1:Cancel() end end
+			if tween2 then if tween2.PlaybackState == Enum.PlaybackState.Playing then tween2:Cancel() end end
+			tween1 = TS:Create(container, ti, {Position = UDim2.new(.5, 0, -.5, 0)})
+			if bg then
+				tween2 = TS:Create(background, ti, {Position = UDim2.new(.5, 0, -.5, 0)})
+				tween2:Play()
+			end
+			tween1:Play()
+			guiClosed = true
+			close.Modal = false
+		end
+	end
+end
+
+-- Selection
+local selectScrollFrame
+local selectFrame
+local selectClose
+
+local selectClosed = Instance.new("BoolValue")
+selectClosed.Name = "selectClosed"
+selectClosed.Parent = selectFrame
+selectClosed.Value = true
+local selectTween
+local function toggleSelectionMenu(labelText)
+	local label = selectFrame:FindFirstChild("top") and selectFrame.top:FindFirstChild("label")
+	if not selectFrame or not selectClose or not label then return end
+	if selectClosed.Value then
+		label.Text = labelText
+		if selectTween then if selectTween.PlaybackState == Enum.PlaybackState.Playing then selectTween:Cancel() end end
+		selectTween = TS:Create(selectFrame, ti, {Position = UDim2.new(.5, 0, .5, 0)})
+		selectTween:Play()
+		selectClosed.Value = false
+		selectClose.Modal = true
+	else
+		if selectTween then if selectTween.PlaybackState == Enum.PlaybackState.Playing then selectTween:Cancel() end end
+		selectTween = TS:Create(selectFrame, ti, {Position = UDim2.new(.5, 0, -.5, 0)})
+		selectTween:Play()
+		selectClosed.Value = true
+		selectClose.Modal = false
+	end
+end
+
+local function clearSelectionButtons()
+	for _,button in ipairs(selectScrollFrame:GetChildren()) do
+		if button:IsA("ImageButton") then button:Destroy() end
+	end
+end
+
+local function createSelectionButtons(tableA, valueInstance)
+	local function createSingle(label2,value)
+		local Button = Instance.new("ImageButton")
+		local padding = Instance.new("UIPadding")
+		local stroke = Instance.new("UIStroke")
+		local label = Instance.new("TextLabel")
+		local valueDisplay = Instance.new("TextLabel")
+		local padding2 = Instance.new("UIPadding")
+
+		Button.Name = "Button"
+		Button.Parent = selectScrollFrame
+		Button.AnchorPoint = Vector2.new(.5, .5)
+		Button.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
+		Button.BackgroundTransparency = .9
+		Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Button.BorderSizePixel = 0
+		Button.LayoutOrder = 1
+		Button.Size = UDim2.new(1, 0, 0, 40)
+		Button.AutoButtonColor = false
+
+		padding.Name = "padding"
+		padding.Parent = Button
+		padding.PaddingBottom = UDim.new(0, 10)
+		padding.PaddingLeft = UDim.new(0, 20)
+		padding.PaddingRight = UDim.new(0, 20)
+		padding.PaddingTop = UDim.new(0, 10)
+
+		stroke.Name = "stroke"
+		stroke.Parent = Button
+		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+		stroke.Color = Color3.fromRGB(255, 255, 255)
+		stroke.LineJoinMode = Enum.LineJoinMode.Miter
+		stroke.Thickness = 0
+		stroke.Transparency = .8
+
+		label.Name = "label"
+		label.Parent = Button
+		label.AnchorPoint = Vector2.new(0, .5)
+		label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		label.BackgroundTransparency = 1
+		label.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		label.BorderSizePixel = 0
+		label.Position = UDim2.new(0, 0, .5, 0)
+		label.Size = UDim2.new(.5, 0, 1, 0)
+		label.Font = Enum.Font.Montserrat
+		label.Text = label2
+		label.TextColor3 = Color3.fromRGB(255, 255, 255)
+		label.TextSize = 18
+		label.TextTransparency = .1
+		label.TextXAlignment = Enum.TextXAlignment.Left
+
+		valueDisplay.Name = "valueDisplay"
+		valueDisplay.Parent = Button
+		valueDisplay.AnchorPoint = Vector2.new(1, .5)
+		valueDisplay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		valueDisplay.BackgroundTransparency = 1
+		valueDisplay.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		valueDisplay.BorderSizePixel = 0
+		valueDisplay.Position = UDim2.new(1, 0, .5, 0)
+		valueDisplay.Size = UDim2.new(.5, 0, 1, 0)
+		valueDisplay.Font = Enum.Font.Montserrat
+		valueDisplay.Text = value
+		valueDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
+		valueDisplay.TextSize = 14
+		valueDisplay.TextTransparency = .1
+		valueDisplay.TextXAlignment = Enum.TextXAlignment.Right
+
+		padding2.Parent = selectScrollFrame
+		padding2.Name = "padding"
+		padding2.PaddingBottom = UDim.new(0, -2)
+		padding2.PaddingLeft = UDim.new(0, 5)
+		padding2.PaddingRight = UDim.new(0, 5)
+		padding2.PaddingTop = UDim.new(0, 2)
+		
+		task.spawn(function()
+			Button.MouseEnter:Connect(function()
+				TS:Create(Button, ti, {BackgroundTransparency = .95}):Play()
+				TS:Create(Button.stroke, ti, {Thickness = 2}):Play()
+			end)
+
+			Button.MouseButton1Down:Connect(function()
+				TS:Create(Button, ti, {BackgroundTransparency = .7}):Play()
+				TS:Create(Button.stroke, ti, {Thickness = 3}):Play()
+			end)
+
+			Button.InputEnded:Connect(function()
+				TS:Create(Button, ti, {BackgroundTransparency = .9}):Play()
+				TS:Create(Button.stroke, ti, {Thickness = 0}):Play()
+			end)
+
+			Button.Activated:Connect(function()
+				valueInstance.Value = value
+				toggleGui(nil,nil,nil,false)
+				toggleSelectionMenu()
+				clearSelectionButtons()
+			end)
+		end)
+	end
+
+	for label,value in pairs(tableA) do
+		createSingle(label,value)
+	end
+end
+-- Selection
 
 local function updateButtons(nextButton, prevButton)
 	if pageNum == 1 then
@@ -324,38 +497,6 @@ local function updateButtons(nextButton, prevButton)
 end
 
 local function initialize()
-	local tween1
-	local tween2
-
-	local function toggleGui(actionName, inputState, _, bg)
-		if (actionName == "MenuToggle" and inputState == Enum.UserInputState.Begin) or bg == false then
-			if bg == nil then bg = true end
-			if guiClosed then
-				if tween1 then if tween1.PlaybackState == Enum.PlaybackState.Playing then tween1:Cancel() end end
-				if tween2 then if tween2.PlaybackState == Enum.PlaybackState.Playing then tween2:Cancel() end end
-				tween1 = TS:Create(container, ti, {Position = UDim2.new(.5, 0, .5, 0)})
-				if bg then
-					tween2 = TS:Create(background, ti, {Position = UDim2.new(.5, 0, .5, 0)})
-					tween2:Play()
-				end
-				tween1:Play()
-				guiClosed = false
-				close.Modal = true
-			else
-				if tween1 then if tween1.PlaybackState == Enum.PlaybackState.Playing then tween1:Cancel() end end
-				if tween2 then if tween2.PlaybackState == Enum.PlaybackState.Playing then tween2:Cancel() end end
-				tween1 = TS:Create(container, ti, {Position = UDim2.new(.5, 0, -.5, 0)})
-				if bg then
-					tween2 = TS:Create(background, ti, {Position = UDim2.new(.5, 0, -.5, 0)})
-					tween2:Play()
-				end
-				tween1:Play()
-				guiClosed = true
-				close.Modal = false
-			end
-		end
-	end
-
 	local keybindlabel
 	local function changeGuiToggleKey(keyText, keyCode)
 		keybindlabel.Text = "Bound to: " .. keyText
@@ -661,104 +802,7 @@ local function initialize()
 
 	createMainGui()
 
-	--[[local selectScrollFrame
-	local selectFrame
-	local selectClose
-
-	local selectClosed = Instance.new("BoolValue")
-	selectClosed.Name = "selectClosed"
-	selectClosed.Parent = selectFrame
-	selectClosed.Value = true
-	local selectTween
-	function toggleSelectionMenu(labelText)
-		local label = selectFrame:FindFirstChild("top") and selectFrame.top:FindFirstChild("label")
-		if not selectFrame or not selectClose or not label then return end
-		if selectClosed.Value then
-			label.Text = labelText
-			if selectTween then if selectTween.PlaybackState == Enum.PlaybackState.Playing then selectTween:Cancel() end end
-			selectTween = TS:Create(selectFrame, ti, {Position = UDim2.new(.5, 0, .5, 0)})
-			selectTween:Play()
-			selectClosed.Value = false
-			selectClose.Modal = true
-		else
-			if selectTween then if selectTween.PlaybackState == Enum.PlaybackState.Playing then selectTween:Cancel() end end
-			selectTween = TS:Create(selectFrame, ti, {Position = UDim2.new(.5, 0, -.5, 0)})
-			selectTween:Play()
-			selectClosed.Value = true
-			selectClose.Modal = false
-		end
-	end]]
-
-	--[[for i, v in ipairs(commands) do
-		if not v[14] then
-			quickcmdList[i] = v[1]
-			if v[16] and typeof(v[16]) == "table" then
-				for _,cmd in ipairs(v[16]) do
-					quickcmdList[cmd] = v[1]
-				end
-			end
-		end
-	end
-	function createQuickCmdUi()
-		quickcmdUI = Instance.new("Frame")
-		local text = Instance.new("TextBox")
-		local UIPadding = Instance.new("UIPadding")
-
-		quickcmdUI.Name = "quickcmd"
-		quickcmdUI.Parent = mainGui
-		quickcmdUI.AnchorPoint = Vector2.new(.5, 0)
-		quickcmdUI.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		quickcmdUI.BackgroundTransparency = .9
-		quickcmdUI.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		quickcmdUI.BorderSizePixel = 0
-		quickcmdUI.Position = UDim2.new(.5, 0, 0, -50)
-		quickcmdUI.Size = UDim2.new(0, 250, 0, 50)
-
-		text.Name = "text"
-		text.Parent = quickcmdUI
-		text.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		text.BackgroundTransparency = .9
-		text.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		text.BorderSizePixel = 0
-		text.Size = UDim2.new(1, 0, 1, 0)
-		text.Font = Enum.Font.Montserrat
-		text.PlaceholderColor3 = Color3.fromRGB(42, 42, 42)
-		text.PlaceholderText = "Command list is in the server"
-		text.Text = ""
-		text.TextColor3 = Color3.fromRGB(0, 0, 0)
-		text.TextSize = 16
-		text.TextWrapped = true
-
-		UIPadding.Parent = quickcmdUI
-		UIPadding.PaddingBottom = UDim.new(0, 5)
-		UIPadding.PaddingLeft = UDim.new(0, 5)
-		UIPadding.PaddingRight = UDim.new(0, 5)
-		UIPadding.PaddingTop = UDim.new(0, 5)
-
-		text.FocusLost:Connect(function(enter)
-			if enter then
-				local id = string.split(text.Text," ")
-				if quickcmdList[tonumber(id[1])] or quickcmdList[string.lower(id[1])] then
-					local cmd = id[1]
-					table.remove(id,1)
-					task.spawn(function()
-						quickcmdList[tonumber(cmd) or string.lower(cmd)](unpack(id))
-					end)
-					text.Text = ""
-				else
-					text.Text = "Invalid command ID"
-				end
-				task.wait(.5)
-			end
-			local ti = TweenInfo.new(.2,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)
-			TS:Create(quickcmdUI,ti,{Position = UDim2.new(.5,0,0,-50)}):Play()
-			quickcmdDB = false
-			return
-		end)
-	end
-	createQuickCmdUi()]]
-
-	--[[function createSelectionFrame()
+	local function createSelectionFrame()
 		local selection = Instance.new("Frame")
 		local top = Instance.new("Frame")
 		local label = Instance.new("TextLabel")
@@ -862,9 +906,36 @@ local function initialize()
 			end)
 		end)
 	end
-	createSelectionFrame()]]
+	createSelectionFrame()
+
+	selectClosed.Changed:Connect(function()
+		if selectClosed.Value then
+			close.Active = false
+			if isfile(saveFileLoc..".json") then
+				local keyText = loadConfig(saveFileLoc..".json")
+				keyText = keyText["MenuToggle"] or "RightShift"
+				keybindlabel.Text = "Bound to: " .. keyText
+				if isValidKey(keyText) then
+					local keyCode = stringToKeyCode(keyText)
+					if keyCode then
+						changeGuiToggleKey(keyText, keyCode)
+					else
+						changeGuiToggleKey("RightShift", Enum.KeyCode.RightShift)
+					end
+				else
+					changeGuiToggleKey("RightShift", Enum.KeyCode.RightShift)
+				end
+			else
+				changeGuiToggleKey("RightShift", Enum.KeyCode.RightShift)
+			end
+		else
+			close.Active = true
+			CAS:UnbindAction("MenuToggle")
+		end
+	end)
 end
 
+-- Creating tings
 local function createPage(pageName)
 	pagesAmount = pagesAmount + 1
 
@@ -1078,11 +1149,1062 @@ local function createPage(pageName)
 	return mainPage
 end
 
+local function createButton(...)
+	local args = {...}
+
+	local buttonInfo = args[1]
+	if type(buttonInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	local buttonName = buttonInfo["Title"] or "Title not specified"
+	local buttonDesc = buttonInfo["Desc"] or "Description not specified"
+	local buttonText = buttonInfo["Action"] or "Action not specified"
+
+	local commandFunc = args[2]
+	if type(commandFunc) ~= "function" then warn("["..libName.."]: Invalid Arguments!"); return end
+
+	local otherInfo = args[3]
+	if type(otherInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	local command = otherInfo["UniqueCommandId"]
+	local canStartup = otherInfo["StartupAvailable"]
+	local bind = otherInfo["Bindable"]
+
+	local mainPage = args[4]
+	if not mainPage then warn("["..libName.."]: Something went wrong while trying to create a button!"); return end
+
+	local Button = Instance.new("ImageButton")
+	local padding = Instance.new("UIPadding")
+	local stroke = Instance.new("UIStroke")
+	local label = Instance.new("TextLabel")
+	local value = Instance.new("TextLabel")
+	local desc = Instance.new("TextLabel")
+	local startup = Instance.new("ImageButton")
+	local startupimage = Instance.new("ImageLabel")
+	local startupimageratio = Instance.new("UIAspectRatioConstraint")
+	local startupstroke = Instance.new("UIStroke")
+	local startuplabel = Instance.new("TextLabel")
+	local keybind = Instance.new("ImageButton")
+	local keybindlabelratio = Instance.new("UIAspectRatioConstraint")
+	local keybindstroke = Instance.new("UIStroke")
+	local keybindlabel = Instance.new("TextLabel")
+	
+	Button.Name = "Button"
+	Button.LayoutOrder = #mainPage:GetChildren()
+	Button.Parent = mainPage
+	Button.AnchorPoint = Vector2.new(.5, .5)
+	Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Button.BackgroundTransparency = .9
+	Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Button.BorderSizePixel = 0
+	Button.LayoutOrder = 1
+	Button.Size = UDim2.new(0.2, 420, 0, 50)
+	Button.AutoButtonColor = false
+
+	padding.Name = "padding"
+	padding.Parent = Button
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 20)
+	padding.PaddingRight = UDim.new(0, 20)
+	padding.PaddingTop = UDim.new(0, 10)
+	
+	stroke.Name = "stroke"
+	stroke.Parent = Button
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+	stroke.Color = Color3.fromRGB(255, 255, 255)
+	stroke.LineJoinMode = Enum.LineJoinMode.Miter
+	stroke.Thickness = 0
+	stroke.Transparency = .8
+
+	label.Name = "label"
+	label.Parent = Button
+	label.AnchorPoint = Vector2.new(0, .5)
+	label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	label.BackgroundTransparency = 1
+	label.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	label.BorderSizePixel = 0
+	label.Position = UDim2.new(0, 0, .25, 0)
+	label.Size = UDim2.new(.5, 0, 1, 0)
+	label.Font = Enum.Font.Montserrat
+	label.Text = buttonName
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.TextSize = 18
+	label.TextTransparency = .1
+	label.TextXAlignment = Enum.TextXAlignment.Left
+
+	value.Name = "value"
+	value.Parent = Button
+	value.AnchorPoint = Vector2.new(1, .5)
+	value.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	value.BackgroundTransparency = 1
+	value.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	value.BorderSizePixel = 0
+	value.Position = UDim2.new(1, 0, .5, 0)
+	value.Size = UDim2.new(.5, 0, 1, 0)
+	value.Font = Enum.Font.Montserrat
+	value.Text = buttonText
+	value.TextColor3 = Color3.fromRGB(255, 255, 255)
+	value.TextSize = 18
+	value.TextTransparency = .5
+	value.TextXAlignment = Enum.TextXAlignment.Right
+
+	desc.Name = "desc"
+	desc.Parent = Button
+	desc.AnchorPoint = Vector2.new(0, .5)
+	desc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	desc.BackgroundTransparency = 1
+	desc.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	desc.BorderSizePixel = 0
+	desc.Position = UDim2.new(0, 0, .8, 0)
+	desc.Size = UDim2.new(.5, 0, 1, 0)
+	desc.Font = Enum.Font.Montserrat
+	desc.Text = buttonDesc
+	desc.TextColor3 = Color3.fromRGB(255, 255, 255)
+	desc.TextSize = 14
+	desc.TextTransparency = .1
+	desc.TextXAlignment = Enum.TextXAlignment.Left
+
+	if canStartup then
+		startup.Name = "startup"
+		startup.Parent = Button
+		startup.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		startup.BackgroundTransparency = .9
+		startup.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		startup.BorderSizePixel = 0
+		startup.Position = UDim2.new(-.141, 0, -.333, 0)
+		startup.Size = UDim2.new(.09, 0, 1.667, 0)
+		startup.ImageTransparency = 1
+		
+		startupstroke.Name = "stroke"
+		startupstroke.Parent = startup
+		startupstroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+		startupstroke.Color = Color3.fromRGB(255, 255, 255)
+		startupstroke.LineJoinMode = Enum.LineJoinMode.Miter
+		startupstroke.Thickness = 0
+		startupstroke.Transparency = .8
+
+		startupimage.Name = "image"
+		startupimage.Parent = startup
+		startupimage.AnchorPoint = Vector2.new(0.5, .5)
+		startupimage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		startupimage.BackgroundTransparency = 1
+		startupimage.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		startupimage.BorderSizePixel = 0
+		startupimage.Position = UDim2.new(.5, 0, .4, 0)
+		startupimage.Size = UDim2.new(.5, 0, .5, 0)
+		startupimage.Image = "rbxassetid://14187539043"
+
+		startuplabel.Name = "label"
+		startuplabel.Parent = startup
+		startuplabel.AnchorPoint = Vector2.new(.5, .5)
+		startuplabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		startuplabel.BackgroundTransparency = 1
+		startuplabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		startuplabel.BorderSizePixel = 0
+		startuplabel.Position = UDim2.new(.5, 0, .8, 0)
+		startuplabel.Size = UDim2.new(1, 0, 1, 0)
+		startuplabel.Font = Enum.Font.Montserrat
+		startuplabel.Text = "Startup?"
+		startuplabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		startuplabel.TextSize = 11
+
+		startupimageratio.Name = "ratio"
+		startupimageratio.Parent = startupimage
+
+		if isfile(saveFileLoc..".json") then
+			local config = loadConfig(saveFileLoc..".json")
+			config = config["Startup"] and config["Startup"][command] or nil
+			if config then
+				startupimage.Image = "rbxassetid://14187538370"
+			end
+		end
+	end
+
+	if bind then
+		keybind.Name = "keybind"
+		keybind.Parent = Button
+		keybind.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		keybind.BackgroundTransparency = .9
+		keybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		keybind.BorderSizePixel = 0
+		keybind.Position = UDim2.new(1.052, 0, -.366, 0)
+		keybind.Size = UDim2.new(.09, 0, 1.666, 0)
+		keybind.ImageTransparency = 1
+
+		keybindstroke.Name = "stroke"
+		keybindstroke.Parent = keybind
+		keybindstroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+		keybindstroke.Color = Color3.fromRGB(255, 255, 255)
+		keybindstroke.LineJoinMode = Enum.LineJoinMode.Miter
+		keybindstroke.Thickness = 0
+		keybindstroke.Transparency = .8
+
+		keybindlabel.Name = "label"
+		keybindlabel.Parent = keybind
+		keybindlabel.AnchorPoint = Vector2.new(.5, .5)
+		keybindlabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		keybindlabel.BackgroundTransparency = 1
+		keybindlabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		keybindlabel.BorderSizePixel = 0
+		keybindlabel.Position = UDim2.new(.5, 0, .5, 0)
+		keybindlabel.Size = UDim2.new(1, 0, 1, 0)
+		keybindlabel.Font = Enum.Font.Montserrat
+		keybindlabel.Text = "Click To Set A Keybind"
+		keybindlabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		keybindlabel.TextSize = 11
+		keybindlabel.TextWrapped = true
+
+		keybindlabelratio.Name = "ratio"
+		keybindlabelratio.Parent = keybindlabel
+
+		if bind and isfile(saveFileLoc..".json") then
+			local config = loadConfig(saveFileLoc..".json")
+			config = config["Keybinds"] and config["Keybinds"][command] or "Nothing"
+			if config ~= "Nothing" and isValidKey(config) then
+				keybindlabel.Text = "Bound to: " .. tostring(config)
+				manageKeybind(command,commandFunc,stringToKeyCode(config))
+			else
+				keybindlabel.Text = "Click To Set A Keybind"
+			end
+		end
+	end
+	
+	task.spawn(function()
+		values[command] = false
+
+		Button.MouseEnter:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .95}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 2}):Play()
+		end)
+
+		Button.MouseButton1Down:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .7}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 3}):Play()
+		end)
+
+		Button.InputEnded:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .9}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 0}):Play()
+		end)
+		
+		Button.Activated:Connect(function()
+			values[command] = not values[command]
+			commandFunc(values[command])
+		end)
+
+		if canStartup then
+			startup.MouseEnter:Connect(function()
+				TS:Create(startup, ti, {BackgroundTransparency = .95}):Play()
+				TS:Create(startup.stroke, ti, {Thickness = 2}):Play()
+			end)
+
+			startup.MouseButton1Down:Connect(function()
+				TS:Create(startup, ti, {BackgroundTransparency = .7}):Play()
+				TS:Create(startup.stroke, ti, {Thickness = 3}):Play()
+			end)
+
+			startup.InputEnded:Connect(function()
+				TS:Create(startup, ti, {BackgroundTransparency = .9}):Play()
+				TS:Create(startup.stroke, ti, {Thickness = 0}):Play()
+			end)
+			
+			startup.Activated:Connect(function()
+				if startupFunc(command) then
+					startupimage.Image = "rbxassetid://14187538370"
+				else
+					startupimage.Image = "rbxassetid://14187539043"
+				end
+			end)
+		end
+
+		if bind then
+			keybind.MouseEnter:Connect(function()
+				TS:Create(keybind, ti, {BackgroundTransparency = .95}):Play()
+				TS:Create(keybind.stroke, ti, {Thickness = 2}):Play()
+			end)
+
+			keybind.MouseButton1Down:Connect(function()
+				TS:Create(keybind, ti, {BackgroundTransparency = .7}):Play()
+				TS:Create(keybind.stroke, ti, {Thickness = 3}):Play()
+			end)
+
+			keybind.InputEnded:Connect(function()
+				TS:Create(keybind, ti, {BackgroundTransparency = .9}):Play()
+				TS:Create(keybind.stroke, ti, {Thickness = 0}):Play()
+			end)
+			
+			local capturingKey = false
+			local connection = nil
+			keybind.Activated:Connect(function()
+				bindKey(capturingKey,connection,keybindlabel,command,commandFunc)
+			end)
+		end
+	end)
+end
+
+local function createTextBox(...)
+	local args = {...}
+
+	local buttonInfo = args[1]
+	if type(buttonInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	local buttonName = buttonInfo["Title"] or "Title not specified"
+	local buttonDesc = buttonInfo["Desc"] or "Description not specified"
+	local buttonText = buttonInfo["Action"] or "Action not specified"
+
+	local commandFunc = args[2]
+	if type(commandFunc) ~= "function" then warn("["..libName.."]: Invalid Arguments!"); return end
+
+	local otherInfo = args[3]
+	if type(otherInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	local command = otherInfo["UniqueCommandId"]
+	local canStartup = otherInfo["StartupAvailable"]
+	local bind = otherInfo["Bindable"]
+
+	local mainPage = args[4]
+	if not mainPage then warn("["..libName.."]: Something went wrong while trying to create a button!"); return end
+	
+	local Button = Instance.new("ImageButton")
+	local padding = Instance.new("UIPadding")
+	local stroke = Instance.new("UIStroke")
+	local label = Instance.new("TextLabel")
+	local textbox = Instance.new("TextBox")
+	local desc = Instance.new("TextLabel")
+	local startup = Instance.new("ImageButton")
+	local startupimage = Instance.new("ImageLabel")
+	local startupimageratio = Instance.new("UIAspectRatioConstraint")
+	local startupstroke = Instance.new("UIStroke")
+	local startuplabel = Instance.new("TextLabel")
+	local keybind = Instance.new("ImageButton")
+	local keybindlabelratio = Instance.new("UIAspectRatioConstraint")
+	local keybindstroke = Instance.new("UIStroke")
+	local keybindlabel = Instance.new("TextLabel")
+
+	Button.Name = "TextBox"
+	Button.LayoutOrder = #targetPage:GetChildren()
+	Button.Parent = targetPage
+	Button.AnchorPoint = Vector2.new(.5, .5)
+	Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Button.BackgroundTransparency = .9
+	Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Button.BorderSizePixel = 0
+	Button.LayoutOrder = 1
+	Button.Size = UDim2.new(0.2, 420, 0, 50)
+	Button.AutoButtonColor = false
+
+	padding.Name = "padding"
+	padding.Parent = Button
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 20)
+	padding.PaddingRight = UDim.new(0, 20)
+	padding.PaddingTop = UDim.new(0, 10)
+
+	stroke.Name = "stroke"
+	stroke.Parent = Button
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+	stroke.Color = Color3.fromRGB(255, 255, 255)
+	stroke.LineJoinMode = Enum.LineJoinMode.Miter
+	stroke.Thickness = 0
+	stroke.Transparency = .8
+
+	label.Name = "label"
+	label.Parent = Button
+	label.AnchorPoint = Vector2.new(0, .5)
+	label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	label.BackgroundTransparency = 1
+	label.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	label.BorderSizePixel = 0
+	label.Position = UDim2.new(0, 0, .25, 0)
+	label.Size = UDim2.new(.5, 0, 1, 0)
+	label.Font = Enum.Font.Montserrat
+	label.Text = buttonName
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.TextSize = 18
+	label.TextTransparency = .1
+	label.TextXAlignment = Enum.TextXAlignment.Left
+
+	textbox.Parent = Button
+	textbox.AnchorPoint = Vector2.new(1, .5)
+	textbox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	textbox.BackgroundTransparency = 1
+	textbox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	textbox.BorderSizePixel = 0
+	textbox.Position = UDim2.new(1, 0, .5, 0)
+	textbox.Size = UDim2.new(.3, 0, 1, 0)
+	textbox.Font = Enum.Font.Montserrat
+	textbox.PlaceholderColor3 = Color3.fromRGB(178, 178, 178)
+	textbox.PlaceholderText = buttonText
+	textbox.Text = ""
+	textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+	textbox.TextSize = 18
+	textbox.TextXAlignment = Enum.TextXAlignment.Right
+
+	desc.Name = "desc"
+	desc.Parent = Button
+	desc.AnchorPoint = Vector2.new(0, .5)
+	desc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	desc.BackgroundTransparency = 1
+	desc.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	desc.BorderSizePixel = 0
+	desc.Position = UDim2.new(0, 0, .8, 0)
+	desc.Size = UDim2.new(.5, 0, 1, 0)
+	desc.Font = Enum.Font.Montserrat
+	desc.Text = buttonDesc
+	desc.TextColor3 = Color3.fromRGB(255, 255, 255)
+	desc.TextSize = 14
+	desc.TextTransparency = .1
+	desc.TextXAlignment = Enum.TextXAlignment.Left
+
+	if isfile("InfilSense.json") then
+		local config = loadConfig("InfilSense.json")
+		config = config["Keybinds"] and config["Keybinds"][command] or "Nothing"
+		keybindlabel.Text = "Bound to: " .. tostring(config)
+	end
+
+	if canStartup then
+		startup.Name = "startup"
+		startup.Parent = Button
+		startup.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		startup.BackgroundTransparency = .9
+		startup.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		startup.BorderSizePixel = 0
+		startup.Position = UDim2.new(-.141, 0, -.333, 0)
+		startup.Size = UDim2.new(.09, 0, 1.667, 0)
+		startup.ImageTransparency = 1
+		
+		startupstroke.Name = "stroke"
+		startupstroke.Parent = startup
+		startupstroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+		startupstroke.Color = Color3.fromRGB(255, 255, 255)
+		startupstroke.LineJoinMode = Enum.LineJoinMode.Miter
+		startupstroke.Thickness = 0
+		startupstroke.Transparency = .8
+
+		startupimage.Name = "image"
+		startupimage.Parent = startup
+		startupimage.AnchorPoint = Vector2.new(0.5, .5)
+		startupimage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		startupimage.BackgroundTransparency = 1
+		startupimage.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		startupimage.BorderSizePixel = 0
+		startupimage.Position = UDim2.new(.5, 0, .4, 0)
+		startupimage.Size = UDim2.new(.5, 0, .5, 0)
+		startupimage.Image = "rbxassetid://14187539043"
+
+		startuplabel.Name = "label"
+		startuplabel.Parent = startup
+		startuplabel.AnchorPoint = Vector2.new(.5, .5)
+		startuplabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		startuplabel.BackgroundTransparency = 1
+		startuplabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		startuplabel.BorderSizePixel = 0
+		startuplabel.Position = UDim2.new(.5, 0, .8, 0)
+		startuplabel.Size = UDim2.new(1, 0, 1, 0)
+		startuplabel.Font = Enum.Font.Montserrat
+		startuplabel.Text = "Startup?"
+		startuplabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		startuplabel.TextSize = 11
+
+		startupimageratio.Name = "ratio"
+		startupimageratio.Parent = startupimage
+
+		if isfile("InfilSense" .. ".json") then
+			local config = loadConfig("InfilSense.json")
+			config = config["Startup"] and config["Startup"][command] or nil
+			if config then
+				startupimage.Image = "rbxassetid://14187538370"
+			end
+		end
+	end
+
+	if bind then
+		keybind.Name = "keybind"
+		keybind.Parent = Button
+		keybind.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		keybind.BackgroundTransparency = .9
+		keybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		keybind.BorderSizePixel = 0
+		keybind.Position = UDim2.new(1.052, 0, -.366, 0)
+		keybind.Size = UDim2.new(.09, 0, 1.666, 0)
+		keybind.ImageTransparency = 1
+
+		keybindstroke.Name = "stroke"
+		keybindstroke.Parent = keybind
+		keybindstroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+		keybindstroke.Color = Color3.fromRGB(255, 255, 255)
+		keybindstroke.LineJoinMode = Enum.LineJoinMode.Miter
+		keybindstroke.Thickness = 0
+		keybindstroke.Transparency = .8
+
+		keybindlabel.Name = "label"
+		keybindlabel.Parent = keybind
+		keybindlabel.AnchorPoint = Vector2.new(.5, .5)
+		keybindlabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		keybindlabel.BackgroundTransparency = 1
+		keybindlabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		keybindlabel.BorderSizePixel = 0
+		keybindlabel.Position = UDim2.new(.5, 0, .5, 0)
+		keybindlabel.Size = UDim2.new(1, 0, 1, 0)
+		keybindlabel.Font = Enum.Font.Montserrat
+		keybindlabel.Text = "Click To Set A Keybind"
+		keybindlabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		keybindlabel.TextSize = 11
+		keybindlabel.TextWrapped = true
+
+		keybindlabelratio.Name = "ratio"
+		keybindlabelratio.Parent = keybindlabel
+	end
+
+	task.spawn(function()
+		Button.MouseEnter:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .95}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 2}):Play()
+		end)
+
+		Button.MouseButton1Down:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .7}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 3}):Play()
+		end)
+
+		Button.InputEnded:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .9}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 0}):Play()
+		end)
+
+		Button.Activated:Connect(function()
+			commandFunc(textbox.Text)
+		end)
+		
+		textbox.FocusLost:Connect(function()
+			if textbox.Text ~= "" then
+				commandFunc(textbox.Text)
+			end
+		end)
+
+		if canStartup then
+			startup.MouseEnter:Connect(function()
+				TS:Create(startup, ti, {BackgroundTransparency = .95}):Play()
+				TS:Create(startup.stroke, ti, {Thickness = 2}):Play()
+			end)
+
+			startup.MouseButton1Down:Connect(function()
+				TS:Create(startup, ti, {BackgroundTransparency = .7}):Play()
+				TS:Create(startup.stroke, ti, {Thickness = 3}):Play()
+			end)
+
+			startup.InputEnded:Connect(function()
+				TS:Create(startup, ti, {BackgroundTransparency = .9}):Play()
+				TS:Create(startup.stroke, ti, {Thickness = 0}):Play()
+			end)
+			
+			startup.Activated:Connect(function()
+				if startupFunc(command) then
+					startupimage.Image = "rbxassetid://14187538370"
+				else
+					startupimage.Image = "rbxassetid://14187539043"
+				end
+			end)
+		end
+
+		if bind then
+			keybind.MouseEnter:Connect(function()
+				TS:Create(keybind, ti, {BackgroundTransparency = .95}):Play()
+				TS:Create(keybind.stroke, ti, {Thickness = 2}):Play()
+			end)
+
+			keybind.MouseButton1Down:Connect(function()
+				TS:Create(keybind, ti, {BackgroundTransparency = .7}):Play()
+				TS:Create(keybind.stroke, ti, {Thickness = 3}):Play()
+			end)
+
+			keybind.InputEnded:Connect(function()
+				TS:Create(keybind, ti, {BackgroundTransparency = .9}):Play()
+				TS:Create(keybind.stroke, ti, {Thickness = 0}):Play()
+			end)
+			
+			local capturingKey = false
+			local connection = nil
+			keybind.Activated:Connect(function()
+				bindKey(capturingKey,connection,keybindlabel,command,commandFunc)
+			end)
+		end
+	end)
+	return textbox
+end
+
+local function createSelection(...)
+	local args = {...}
+
+	local buttonInfo = args[1]
+	if type(buttonInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	local buttonName = buttonInfo["Title"] or "Title not specified"
+	local buttonDesc = buttonInfo["Desc"] or "Description not specified"
+	local buttonText = buttonInfo["Action"] or "Action not specified"
+
+	local commandFunc = args[2]
+	if type(commandFunc) ~= "function" then warn("["..libName.."]: Invalid Arguments!"); return end
+
+	local otherInfo = args[3]
+	if type(otherInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	local command = otherInfo["UniqueCommandId"]
+	--local canStartup = otherInfo["StartupAvailable"]
+	--local bind = otherInfo["Bindable"]
+
+	local mainPage = args[4]
+	if not mainPage then warn("["..libName.."]: Something went wrong while trying to create a button!"); return end
+
+	if not args[5] or type(args[5]) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	
+	local Button = Instance.new("ImageButton")
+	local padding = Instance.new("UIPadding")
+	local stroke = Instance.new("UIStroke")
+	local label = Instance.new("TextLabel")
+	local desc = Instance.new("TextLabel")
+	local value = Instance.new("ImageButton")
+	local value_2 = Instance.new("TextLabel")
+	local selected = Instance.new("StringValue")
+
+	Button.Name = "Selection"
+	Button.LayoutOrder = #mainPage:GetChildren()
+	Button.Parent = mainPage
+	Button.AnchorPoint = Vector2.new(0.5, 0.5)
+	Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Button.BackgroundTransparency = 0.900
+	Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Button.BorderSizePixel = 0
+	Button.LayoutOrder = 3
+	Button.Size = UDim2.new(0.2, 420, 0, 50)
+	Button.AutoButtonColor = false
+
+	padding.Name = "padding"
+	padding.Parent = Button
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 20)
+	padding.PaddingRight = UDim.new(0, 20)
+	padding.PaddingTop = UDim.new(0, 10)
+
+	stroke.Name = "stroke"
+	stroke.Parent = Button
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+	stroke.Color = Color3.fromRGB(255, 255, 255)
+	stroke.LineJoinMode = Enum.LineJoinMode.Miter
+	stroke.Thickness = 0
+	stroke.Transparency = .8
+
+	label.Name = "label"
+	label.Parent = Button
+	label.AnchorPoint = Vector2.new(0, .5)
+	label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	label.BackgroundTransparency = 1
+	label.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	label.BorderSizePixel = 0
+	label.Position = UDim2.new(0, 0, .25, 0)
+	label.Size = UDim2.new(.5, 0, 1, 0)
+	label.Font = Enum.Font.Montserrat
+	label.Text = buttonName
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.TextSize = 18
+	label.TextTransparency = .1
+	label.TextXAlignment = Enum.TextXAlignment.Left
+
+	desc.Name = "desc"
+	desc.Parent = Button
+	desc.AnchorPoint = Vector2.new(0, .5)
+	desc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	desc.BackgroundTransparency = 1
+	desc.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	desc.BorderSizePixel = 0
+	desc.Position = UDim2.new(0, 0, .8, 0)
+	desc.Size = UDim2.new(.5, 0, 1, 0)
+	desc.Font = Enum.Font.Montserrat
+	desc.Text = buttonDesc
+	desc.TextColor3 = Color3.fromRGB(255, 255, 255)
+	desc.TextSize = 14
+	desc.TextTransparency = .1
+	desc.TextXAlignment = Enum.TextXAlignment.Left
+
+	value.Name = "value"
+	value.Parent = Button
+	value.AnchorPoint = Vector2.new(1, .5)
+	value.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	value.BackgroundTransparency = 1
+	value.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	value.BorderSizePixel = 0
+	value.Position = UDim2.new(1, 0, .5, 0)
+	value.Size = UDim2.new(.5, 0, 1, 15)
+	value.ImageTransparency = 1
+
+	value_2.Name = "value"
+	value_2.Parent = value
+	value_2.AnchorPoint = Vector2.new(1, .5)
+	value_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	value_2.BackgroundTransparency = 1
+	value_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	value_2.BorderSizePixel = 0
+	value_2.Position = UDim2.new(1, 0, .5, 0)
+	value_2.Size = UDim2.new(1, 0, 1, 0)
+	value_2.Font = Enum.Font.Montserrat
+	value_2.Text = buttonText
+	value_2.TextColor3 = Color3.fromRGB(255, 255, 255)
+	value_2.TextSize = 18
+	value_2.TextTransparency = .5
+	value_2.TextWrapped = true
+	value_2.TextXAlignment = Enum.TextXAlignment.Right
+
+	selected.Name = "selected"
+	selected.Parent = value
+
+	task.spawn(function()
+		Button.MouseEnter:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .95}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 2}):Play()
+		end)
+
+		Button.MouseButton1Down:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .7}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 3}):Play()
+		end)
+
+		Button.InputEnded:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .9}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 0}):Play()
+		end)
+
+		Button.Activated:Connect(function()
+			commandFunc(selected.Value)
+		end)
+
+		selected.Changed:Connect(function()
+			value_2.Text = selected.Value
+			values[command] = selected.Value
+		end)
+
+		value.Activated:Connect(function()
+			createSelectionButtons(args[5],selected)
+			toggleGui(nil,nil,nil,false)
+			toggleSelectionMenu(buttonName)
+		end)
+	end)
+end
+
+local function createSlider(...)
+	local args = {...}
+
+	local buttonInfo = args[1]
+	if type(buttonInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	local buttonName = buttonInfo["Title"] or "Title not specified"
+	local buttonDesc = buttonInfo["Desc"] or "Description not specified"
+	--local buttonText = buttonInfo["Action"] or "Action not specified"
+
+	local commandFunc = args[2]
+	if type(commandFunc) ~= "function" then warn("["..libName.."]: Invalid Arguments!"); return end
+
+	local otherInfo = args[3]
+	if type(otherInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	local command = otherInfo["UniqueCommandId"]
+	--local canStartup = otherInfo["StartupAvailable"]
+	local bind = otherInfo["Bindable"]
+
+	local mainPage = args[4]
+	if not mainPage then warn("["..libName.."]: Something went wrong while trying to create a button!"); return end
+
+	local settings = args[5]
+	if not settings or type(settings) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+	local sliderType = settings["sliderType"]
+	local defValue = settings["defValue"]
+	local lowVal = settings["lowVal"]
+	local maxVal = settings["maxVal"]
+	if not (defValue and lowVal and maxVal) then warn("["..libName.."]: Invalid Arguments!"); return end
+
+	local Button = Instance.new("ImageButton")
+	local padding = Instance.new("UIPadding")
+	local stroke = Instance.new("UIStroke")
+	local label = Instance.new("TextLabel")
+	local sliderTrack = Instance.new("Frame")
+	local sliderThumb = Instance.new("ImageButton")
+	local desc = Instance.new("TextLabel")
+	local keybind = Instance.new("ImageButton")
+	local keybindstroke = Instance.new("UIStroke")
+	local keybindlabel = Instance.new("TextLabel")
+	local keybindlabelratio = Instance.new("UIAspectRatioConstraint")
+	
+	Button.Name = "Slider"
+	Button.LayoutOrder = #targetPage:GetChildren()
+	Button.Parent = targetPage
+	Button.AnchorPoint = Vector2.new(0.5, 0.5)
+	Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Button.BackgroundTransparency = 0.9
+	Button.BorderSizePixel = 0
+	Button.Size = UDim2.new(0.2, 420, 0, 50)
+	Button.AutoButtonColor = false
+
+	padding.PaddingBottom = UDim.new(0, 10)
+	padding.PaddingLeft = UDim.new(0, 20)
+	padding.PaddingRight = UDim.new(0, 20)
+	padding.PaddingTop = UDim.new(0, 10)
+	padding.Parent = Button
+
+	stroke.Name = "stroke"
+	stroke.Parent = Button
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+	stroke.Color = Color3.fromRGB(255, 255, 255)
+	stroke.LineJoinMode = Enum.LineJoinMode.Miter
+	stroke.Thickness = 0
+	stroke.Transparency = .8
+
+	label.Name = "label"
+	label.AnchorPoint = Vector2.new(0, 0.5)
+	label.BackgroundTransparency = 1
+	label.Position = UDim2.new(0, 0, 0.25, 0)
+	label.Size = UDim2.new(0.5, 0, 1, 0)
+	label.Font = Enum.Font.Montserrat
+	label.Text = buttonName .. ": " .. (sliderType == "bool" and tostring(defValue > .5) or tostring(defValue))
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.TextSize = 18
+	label.TextTransparency = 0.1
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = Button
+
+	sliderTrack.Name = "slider"
+	sliderTrack.AnchorPoint = Vector2.new(0.5, 1)
+	sliderTrack.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	sliderTrack.BackgroundTransparency = 0.5
+	sliderTrack.BorderSizePixel = 0
+	sliderTrack.Position = UDim2.new(0.5, 0, 1, 0)
+	sliderTrack.Size = UDim2.new(1, 0, 0, 2)
+	sliderTrack.Parent = Button
+
+	sliderThumb.Name = "thumb"
+	sliderThumb.AnchorPoint = Vector2.new(.5, .5)
+	sliderThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	sliderThumb.BackgroundTransparency = .5
+	sliderThumb.BorderSizePixel = 0
+	sliderThumb.Size = UDim2.new(0, 20, 0, 15)
+	sliderThumb.Image = ""
+	sliderThumb.ImageTransparency = 1
+	sliderThumb.Position = UDim2.new((defValue - lowVal)/(maxVal - lowVal), 0, .5, 0)
+	sliderThumb.Parent = sliderTrack
+
+	desc.Name = "desc"
+	desc.AnchorPoint = Vector2.new(1, .5)
+	desc.BackgroundTransparency = 1
+	desc.Position = UDim2.new(1, 0, .3, 0)
+	desc.Size = UDim2.new(.5, 0, 1, 0)
+	desc.Font = Enum.Font.Montserrat
+	desc.Text = buttonDesc
+	desc.TextColor3 = Color3.fromRGB(255, 255, 255)
+	desc.TextSize = 14
+	desc.TextTransparency = 0.1
+	desc.TextXAlignment = Enum.TextXAlignment.Right
+	desc.Parent = Button
+
+	if bind then
+		keybind.Name = "keybind"
+		keybind.Parent = Button
+		keybind.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		keybind.BackgroundTransparency = .9
+		keybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		keybind.BorderSizePixel = 0
+		keybind.Position = UDim2.new(1.052, 0, -.366, 0)
+		keybind.Size = UDim2.new(.09, 0, 1.666, 0)
+		keybind.ImageTransparency = 1
+
+		keybindstroke.Name = "stroke"
+		keybindstroke.Parent = keybind
+		keybindstroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+		keybindstroke.Color = Color3.fromRGB(255, 255, 255)
+		keybindstroke.LineJoinMode = Enum.LineJoinMode.Miter
+		keybindstroke.Thickness = 0
+		keybindstroke.Transparency = .8
+
+		keybindlabel.Name = "label"
+		keybindlabel.Parent = keybind
+		keybindlabel.AnchorPoint = Vector2.new(.5, .5)
+		keybindlabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		keybindlabel.BackgroundTransparency = 1
+		keybindlabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		keybindlabel.BorderSizePixel = 0
+		keybindlabel.Position = UDim2.new(.5, 0, .5, 0)
+		keybindlabel.Size = UDim2.new(1, 0, 1, 0)
+		keybindlabel.Font = Enum.Font.Montserrat
+		keybindlabel.Text = "Click To Set A Keybind"
+		keybindlabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		keybindlabel.TextSize = 11
+		keybindlabel.TextWrapped = true
+
+		keybindlabelratio.Name = "ratio"
+		keybindlabelratio.Parent = keybindlabel
+
+		if isfile(saveFileLoc..".json") then
+			local config = loadConfig(saveFileLoc..".json")
+			config = config["Keybinds"] and config["Keybinds"][command] or "Nothing"
+			keybindlabel.Text = "Bound to: " .. tostring(config)
+		end
+	end
+
+	local value = (sliderType == "bool" and defValue > .5 or defValue)
+	task.spawn(function()
+		local ti = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		local isDragging = false
+		local moveConn
+		local releaseConn
+		--[[
+		if saves and isfile(saveFileLoc..".json") then
+			local config = loadConfig(saveFileLoc..".json")
+			if config and config.Settings and config.Settings[command] ~= nil then
+				value = config.Settings[command]
+				local percent
+				if sliderType == "bool" then
+					percent = value and 1.0 or 0.0
+				else
+					percent = math.clamp((value - lowVal) / (maxVal - lowVal), 0, 1)
+				end
+				sliderThumb.Position = UDim2.new(percent, 0, 0.5, 0)
+				label.Text = buttonName .. ": " .. (sliderType == "bool" and tostring(value) or string.format("%.2f", value))
+				if autoload then
+					commandFunc(value)
+				end
+			end
+		end]]
+
+		Button.MouseEnter:Connect(function()
+			if not isDragging then
+				TS:Create(Button, ti, {BackgroundTransparency = .95}):Play()
+				TS:Create(Button.stroke, ti, {Thickness = 2}):Play()
+			end
+		end)    
+
+		--[[
+		Button.MouseButton1Down:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .7}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 3}):Play()
+		end)
+
+		Button.InputEnded:Connect(function()
+			TS:Create(Button, ti, {BackgroundTransparency = .9}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 0}):Play()
+		end)
+		]]
+		
+		--[[
+		Button.Activated:Connect(function()
+			commandFunc(value)
+		end)
+		]]
+
+		if bind then
+			keybind.MouseEnter:Connect(function()
+				TS:Create(keybind, ti, {BackgroundTransparency = .95}):Play()
+				TS:Create(keybind.stroke, ti, {Thickness = 2}):Play()
+			end)
+
+			keybind.MouseButton1Down:Connect(function()
+				TS:Create(keybind, ti, {BackgroundTransparency = .7}):Play()
+				TS:Create(keybind.stroke, ti, {Thickness = 3}):Play()
+			end)
+
+			keybind.InputEnded:Connect(function()
+				TS:Create(keybind, ti, {BackgroundTransparency = .9}):Play()
+				TS:Create(keybind.stroke, ti, {Thickness = 0}):Play()
+			end)
+			
+			local capturingKey = false
+			local connection = nil
+			keybind.Activated:Connect(function()
+				bindKey(capturingKey,connection,keybindlabel,command,commandFunc)
+			end)
+		end
+
+		local canActivate = true
+		sliderThumb.MouseButton1Down:Connect(function()
+			if not canActivate then return end
+			canActivate = false
+			isDragging = true   
+			local sliderAbsolutePos = sliderTrack.AbsolutePosition.X
+			local sliderWidth = sliderTrack.AbsoluteSize.X
+			local targetPos = sliderThumb.Position
+			local runConn
+
+			TS:Create(Button, ti, {BackgroundTransparency = .7}):Play()
+			TS:Create(Button.stroke, ti, {Thickness = 3}):Play()
+			
+			local function handleMove(input)
+				if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
+					local mouseX = input.Position.X
+					local relativeX = math.clamp(mouseX - sliderAbsolutePos, 0, sliderWidth)
+					local percent = relativeX / sliderWidth
+
+					if sliderType == "num" then
+						local snapInterval = 1
+						local rawValue = lowVal + (maxVal - lowVal) * percent
+						value = math.floor((rawValue / snapInterval) + .5) * snapInterval
+						value = math.clamp(value, lowVal, maxVal)
+						percent = (value - lowVal) / (maxVal - lowVal)
+					elseif sliderType == "bool" then
+						value = percent > .5
+						percent = value and 1 or 0
+					end
+					values[command] = value
+
+					targetPos = UDim2.new(percent, 0, .5, 0)
+					label.Text = buttonName .. ": " .. (sliderType == "bool" and tostring(value) or string.format("%.2f", value))
+				end
+			end
+			
+			local function handleRelease(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 and isDragging then
+					isDragging = false
+					TS:Create(Button, ti, {BackgroundTransparency = .9}):Play()
+					TS:Create(Button.stroke, ti, {Thickness = 0}):Play()
+					moveConn:Disconnect()
+					moveConn = nil
+					releaseConn:Disconnect()
+					releaseConn = nil
+					if settings then
+						configManager.add(command,"Settings",value)
+					end
+					task.spawn(function()
+						commandFunc(value)
+					end)
+					if sliderType == "bool" then
+						if runConn then runConn:Disconnect(); runConn = nil end
+						local snapPercent = value and 1 or 0
+						TS:Create(sliderThumb, ti, {Position = UDim2.new(snapPercent, 0, .5, 0)}):Play()
+						canActivate = true
+						return
+					end
+					local finalTween = TS:Create(sliderThumb, ti, {Position = targetPos})
+					finalTween.Completed:Connect(function()
+						if runConn then runConn:Disconnect(); runConn = nil end
+						canActivate = true
+					end)
+					finalTween:Play()
+					values[command] = value
+				end
+			end
+
+			runConn = runService.RenderStepped:Connect(function()
+				if isDragging and targetPos then
+					sliderThumb.Position = sliderThumb.Position:Lerp(targetPos, .15)
+				end
+			end)
+			moveConn = UIS.InputChanged:Connect(handleMove)
+			releaseConn = UIS.InputEnded:Connect(handleRelease)
+		end)
+	end)
+end
+-- Creating things
+
 function module:Init()
 	initialize()
 
 	local lib = {}
 	lib.__index = lib
+
+	function lib:ToggleCheck(command)
+		if not command or values[command] == nil then return "Invalid command id" end
+		return values[command]
+	end
+
+	function lib:ToggleGui()
+		toggleGui(nil,nil,nil,nil,true)
+	end
 
 	function lib:AddPage(pageName)
 		local mainPage = createPage(pageName)
@@ -1094,287 +2216,154 @@ function module:Init()
 			local args = {...}
 
 			local buttonInfo = args[1]
-			if type(buttonInfo) ~= "table" then return end
-			local buttonName = buttonInfo[1]
-			local buttonDesc = buttonInfo[2]
-			local buttonText = buttonInfo[3]
+			if type(buttonInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+			--local buttonName = buttonInfo["Title"] or "Title not specified"
+			--local buttonDesc = buttonInfo["Desc"] or "Description not specified"
+			--local buttonText = buttonInfo["Action"] or "Action not specified"
 
 			local commandFunc = args[2]
-			if type(commandFunc) ~= "function" then return end
+			if type(commandFunc) ~= "function" then warn("["..libName.."]: Invalid Arguments!"); return end
 
 			local otherInfo = args[3]
-			if type(otherInfo) ~= "table" then return end
-			local command = otherInfo[1]
-			local canStartup = otherInfo[2]
-			local bind = otherInfo[3]
+			if type(otherInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+			local command = otherInfo["UniqueCommandId"]
+			--local canStartup = otherInfo["StartupAvailable"]
+			--local bind = otherInfo["Bindable"]
 
-			local Button = Instance.new("ImageButton")
-			local padding = Instance.new("UIPadding")
-			local stroke = Instance.new("UIStroke")
-			local label = Instance.new("TextLabel")
-			local value = Instance.new("TextLabel")
-			local desc = Instance.new("TextLabel")
-			local startup = Instance.new("ImageButton")
-			local startupimage = Instance.new("ImageLabel")
-			local startupimageratio = Instance.new("UIAspectRatioConstraint")
-			local startupstroke = Instance.new("UIStroke")
-			local startuplabel = Instance.new("TextLabel")
-			local keybind = Instance.new("ImageButton")
-			local keybindlabelratio = Instance.new("UIAspectRatioConstraint")
-			local keybindstroke = Instance.new("UIStroke")
-			local keybindlabel = Instance.new("TextLabel")
-			
-			Button.Name = "Button"
-			Button.LayoutOrder = #mainPage:GetChildren()
-			Button.Parent = mainPage
-			Button.AnchorPoint = Vector2.new(.5, .5)
-			Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			Button.BackgroundTransparency = .9
-			Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			Button.BorderSizePixel = 0
-			Button.LayoutOrder = 1
-			Button.Size = UDim2.new(0.2, 420, 0, 50)
-			Button.AutoButtonColor = false
-
-			padding.Name = "padding"
-			padding.Parent = Button
-			padding.PaddingBottom = UDim.new(0, 10)
-			padding.PaddingLeft = UDim.new(0, 20)
-			padding.PaddingRight = UDim.new(0, 20)
-			padding.PaddingTop = UDim.new(0, 10)
-			
-			stroke.Name = "stroke"
-			stroke.Parent = Button
-			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
-			stroke.Color = Color3.fromRGB(255, 255, 255)
-			stroke.LineJoinMode = Enum.LineJoinMode.Miter
-			stroke.Thickness = 0
-			stroke.Transparency = .8
-
-			label.Name = "label"
-			label.Parent = Button
-			label.AnchorPoint = Vector2.new(0, .5)
-			label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			label.BackgroundTransparency = 1
-			label.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			label.BorderSizePixel = 0
-			label.Position = UDim2.new(0, 0, .25, 0)
-			label.Size = UDim2.new(.5, 0, 1, 0)
-			label.Font = Enum.Font.Montserrat
-			label.Text = buttonName
-			label.TextColor3 = Color3.fromRGB(255, 255, 255)
-			label.TextSize = 18
-			label.TextTransparency = .1
-			label.TextXAlignment = Enum.TextXAlignment.Left
-
-			value.Name = "value"
-			value.Parent = Button
-			value.AnchorPoint = Vector2.new(1, .5)
-			value.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			value.BackgroundTransparency = 1
-			value.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			value.BorderSizePixel = 0
-			value.Position = UDim2.new(1, 0, .5, 0)
-			value.Size = UDim2.new(.5, 0, 1, 0)
-			value.Font = Enum.Font.Montserrat
-			value.Text = buttonText
-			value.TextColor3 = Color3.fromRGB(255, 255, 255)
-			value.TextSize = 18
-			value.TextTransparency = .5
-			value.TextXAlignment = Enum.TextXAlignment.Right
-
-			desc.Name = "desc"
-			desc.Parent = Button
-			desc.AnchorPoint = Vector2.new(0, .5)
-			desc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			desc.BackgroundTransparency = 1
-			desc.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			desc.BorderSizePixel = 0
-			desc.Position = UDim2.new(0, 0, .8, 0)
-			desc.Size = UDim2.new(.5, 0, 1, 0)
-			desc.Font = Enum.Font.Montserrat
-			desc.Text = buttonDesc
-			desc.TextColor3 = Color3.fromRGB(255, 255, 255)
-			desc.TextSize = 14
-			desc.TextTransparency = .1
-			desc.TextXAlignment = Enum.TextXAlignment.Left
-
-			if canStartup then
-				startup.Name = "startup"
-				startup.Parent = Button
-				startup.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				startup.BackgroundTransparency = .9
-				startup.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				startup.BorderSizePixel = 0
-				startup.Position = UDim2.new(-.141, 0, -.333, 0)
-				startup.Size = UDim2.new(.09, 0, 1.667, 0)
-				startup.ImageTransparency = 1
-				
-				startupstroke.Name = "stroke"
-				startupstroke.Parent = startup
-				startupstroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
-				startupstroke.Color = Color3.fromRGB(255, 255, 255)
-				startupstroke.LineJoinMode = Enum.LineJoinMode.Miter
-				startupstroke.Thickness = 0
-				startupstroke.Transparency = .8
-
-				startupimage.Name = "image"
-				startupimage.Parent = startup
-				startupimage.AnchorPoint = Vector2.new(0.5, .5)
-				startupimage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				startupimage.BackgroundTransparency = 1
-				startupimage.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				startupimage.BorderSizePixel = 0
-				startupimage.Position = UDim2.new(.5, 0, .4, 0)
-				startupimage.Size = UDim2.new(.5, 0, .5, 0)
-				startupimage.Image = "rbxassetid://14187539043"
-
-				startuplabel.Name = "label"
-				startuplabel.Parent = startup
-				startuplabel.AnchorPoint = Vector2.new(.5, .5)
-				startuplabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				startuplabel.BackgroundTransparency = 1
-				startuplabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				startuplabel.BorderSizePixel = 0
-				startuplabel.Position = UDim2.new(.5, 0, .8, 0)
-				startuplabel.Size = UDim2.new(1, 0, 1, 0)
-				startuplabel.Font = Enum.Font.Montserrat
-				startuplabel.Text = "Startup?"
-				startuplabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-				startuplabel.TextSize = 11
-
-				startupimageratio.Name = "ratio"
-				startupimageratio.Parent = startupimage
-
-				if isfile(saveFileLoc..".json") then
-					local config = loadConfig(saveFileLoc..".json")
-					config = config["Startup"] and config["Startup"][command] or nil
-					if config then
-						startupimage.Image = "rbxassetid://14187538370"
-					end
-				end
+			--if not (buttonName and buttonDesc and buttonText) then warn("["..libName.."]: You have not specified the required arguments!"); return end
+			if not command or type(command) ~= "string" or command == "" or values[command] then
+				local selectedString = nil
+				repeat selectedString = randomString() until values[selectedString] == nil
+				otherInfo["UniqueCommandId"] = selectedString
+				command = selectedString
 			end
 
-			if bind then
-				keybind.Name = "keybind"
-				keybind.Parent = Button
-				keybind.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				keybind.BackgroundTransparency = .9
-				keybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				keybind.BorderSizePixel = 0
-				keybind.Position = UDim2.new(1.052, 0, -.366, 0)
-				keybind.Size = UDim2.new(.09, 0, 1.666, 0)
-				keybind.ImageTransparency = 1
+			createButton(buttonInfo, commandFunc, otherInfo, mainPage)
 
-				keybindstroke.Name = "stroke"
-				keybindstroke.Parent = keybind
-				keybindstroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
-				keybindstroke.Color = Color3.fromRGB(255, 255, 255)
-				keybindstroke.LineJoinMode = Enum.LineJoinMode.Miter
-				keybindstroke.Thickness = 0
-				keybindstroke.Transparency = .8
+			local button = {}
+			button.__index = button
 
-				keybindlabel.Name = "label"
-				keybindlabel.Parent = keybind
-				keybindlabel.AnchorPoint = Vector2.new(.5, .5)
-				keybindlabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				keybindlabel.BackgroundTransparency = 1
-				keybindlabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				keybindlabel.BorderSizePixel = 0
-				keybindlabel.Position = UDim2.new(.5, 0, .5, 0)
-				keybindlabel.Size = UDim2.new(1, 0, 1, 0)
-				keybindlabel.Font = Enum.Font.Montserrat
-				keybindlabel.Text = "Click To Set A Keybind"
-				keybindlabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-				keybindlabel.TextSize = 11
-				keybindlabel.TextWrapped = true
-
-				keybindlabelratio.Name = "ratio"
-				keybindlabelratio.Parent = keybindlabel
-
-				if bind and isfile(saveFileLoc..".json") then
-					local config = loadConfig(saveFileLoc..".json")
-					config = config["Keybinds"] and config["Keybinds"][command] or "Nothing"
-					if config ~= "Nothing" and isValidKey(config) then
-						keybindlabel.Text = "Bound to: " .. tostring(config)
-						manageKeybind(command,commandFunc,stringToKeyCode(config))
-					else
-						keybindlabel.Text = "Click To Set A Keybind"
-					end
-				end
+			function button:getValue()
+				return values[command]
 			end
-			
-			task.spawn(function()
-				toggles[command] = false
 
-				Button.MouseEnter:Connect(function()
-					TS:Create(Button, ti, {BackgroundTransparency = .95}):Play()
-					TS:Create(Button.stroke, ti, {Thickness = 2}):Play()
-				end)
+			return button
+		end
 
-				Button.MouseButton1Down:Connect(function()
-					TS:Create(Button, ti, {BackgroundTransparency = .7}):Play()
-					TS:Create(Button.stroke, ti, {Thickness = 3}):Play()
-				end)
+		function page:AddTextbox(...)
+			local args = {...}
 
-				Button.InputEnded:Connect(function()
-					TS:Create(Button, ti, {BackgroundTransparency = .9}):Play()
-					TS:Create(Button.stroke, ti, {Thickness = 0}):Play()
-				end)
-				
-				Button.Activated:Connect(function()
-					toggles[command] = not toggles[command]
-					commandFunc(toggles[command])
-				end)
+			local buttonInfo = args[1]
+			if type(buttonInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+			--local buttonName = buttonInfo["Title"] or "Title not specified"
+			--local buttonDesc = buttonInfo["Desc"] or "Description not specified"
+			--local buttonText = buttonInfo["Action"] or "Action not specified"
 
-				if canStartup then
-					startup.MouseEnter:Connect(function()
-						TS:Create(startup, ti, {BackgroundTransparency = .95}):Play()
-						TS:Create(startup.stroke, ti, {Thickness = 2}):Play()
-					end)
+			local commandFunc = args[2]
+			if type(commandFunc) ~= "function" then warn("["..libName.."]: Invalid Arguments!"); return end
 
-					startup.MouseButton1Down:Connect(function()
-						TS:Create(startup, ti, {BackgroundTransparency = .7}):Play()
-						TS:Create(startup.stroke, ti, {Thickness = 3}):Play()
-					end)
+			local otherInfo = args[3]
+			if type(otherInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+			local command = otherInfo["UniqueCommandId"]
+			--local canStartup = otherInfo["StartupAvailable"]
+			--local bind = otherInfo["Bindable"]
 
-					startup.InputEnded:Connect(function()
-						TS:Create(startup, ti, {BackgroundTransparency = .9}):Play()
-						TS:Create(startup.stroke, ti, {Thickness = 0}):Play()
-					end)
-					
-					startup.Activated:Connect(function()
-						if startupFunc(command) then
-							startupimage.Image = "rbxassetid://14187538370"
-						else
-							startupimage.Image = "rbxassetid://14187539043"
-						end
-					end)
-				end
+			--if not (buttonName and buttonDesc and buttonText) then warn("["..libName.."]: You have not specified the required arguments!"); return end
+			if not command or type(command) ~= "string" or command == "" or values[command] then
+				local selectedString = nil
+				repeat selectedString = randomString() until values[selectedString] == nil
+				otherInfo["UniqueCommandId"] = selectedString
+				command = selectedString
+			end
 
-				if bind then
-					keybind.MouseEnter:Connect(function()
-						TS:Create(keybind, ti, {BackgroundTransparency = .95}):Play()
-						TS:Create(keybind.stroke, ti, {Thickness = 2}):Play()
-					end)
+			local textbox = createTextBox(buttonInfo, commandFunc, otherInfo, mainPage)
 
-					keybind.MouseButton1Down:Connect(function()
-						TS:Create(keybind, ti, {BackgroundTransparency = .7}):Play()
-						TS:Create(keybind.stroke, ti, {Thickness = 3}):Play()
-					end)
+			local button = {}
+			button.__index = button
 
-					keybind.InputEnded:Connect(function()
-						TS:Create(keybind, ti, {BackgroundTransparency = .9}):Play()
-						TS:Create(keybind.stroke, ti, {Thickness = 0}):Play()
-					end)
-					
-					local capturingKey = false
-					local connection = nil
-					keybind.Activated:Connect(function()
-						bindKey(capturingKey,connection,keybindlabel,command,commandFunc)
-					end)
-				end
-			end)
+			function button:getValue()
+				return textbox.Text
+			end
+
+			return button
+		end
+
+		function page:AddSelection(...)
+			local args = {...}
+
+			local buttonInfo = args[1]
+			if type(buttonInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+			--local buttonName = buttonInfo["Title"] or "Title not specified"
+			--local buttonDesc = buttonInfo["Desc"] or "Description not specified"
+			--local buttonText = buttonInfo["Action"] or "Action not specified"
+
+			local commandFunc = args[2]
+			if type(commandFunc) ~= "function" then warn("["..libName.."]: Invalid Arguments!"); return end
+
+			local otherInfo = args[3]
+			if type(otherInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+			local command = otherInfo["UniqueCommandId"]
+			--local canStartup = otherInfo["StartupAvailable"]
+			--local bind = otherInfo["Bindable"]
+			if not args[4] or type(args[4]) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+
+			--if not (buttonName and buttonDesc and buttonText) then warn("["..libName.."]: You have not specified the required arguments!"); return end
+			if not command or type(command) ~= "string" or command == "" or values[command] then
+				local selectedString = nil
+				repeat selectedString = randomString() until values[selectedString] == nil
+				otherInfo["UniqueCommandId"] = selectedString
+				command = selectedString
+			end
+
+			createSelection(buttonInfo, commandFunc, otherInfo, mainPage, args[4])
+
+			local button = {}
+			button.__index = button
+
+			function button:getValue()
+				return values[command]
+			end
+
+			return button
+		end
+
+		function page:AddSlider(...)
+			local args = {...}
+
+			local buttonInfo = args[1]
+			if type(buttonInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+			--local buttonName = buttonInfo["Title"] or "Title not specified"
+			--local buttonDesc = buttonInfo["Desc"] or "Description not specified"
+			--local buttonText = buttonInfo["Action"] or "Action not specified"
+
+			local commandFunc = args[2]
+			if type(commandFunc) ~= "function" then warn("["..libName.."]: Invalid Arguments!"); return end
+
+			local otherInfo = args[3]
+			if type(otherInfo) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+			local command = otherInfo["UniqueCommandId"]
+			--local canStartup = otherInfo["StartupAvailable"]
+			--local bind = otherInfo["Bindable"]
+			if not args[4] or type(args[4]) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
+
+			--if not (buttonName and buttonDesc and buttonText) then warn("["..libName.."]: You have not specified the required arguments!"); return end
+			if not command or type(command) ~= "string" or command == "" or values[command] then
+				local selectedString = nil
+				repeat selectedString = randomString() until values[selectedString] == nil
+				otherInfo["UniqueCommandId"] = selectedString
+				command = selectedString
+			end
+
+			createSlider(buttonInfo, commandFunc, otherInfo, mainPage, args[4])
+
+			local button = {}
+			button.__index = button
+
+			function button:getValue()
+				return values[command]
+			end
+
+			return button
 		end
 
 		return page
@@ -1383,6 +2372,13 @@ function module:Init()
 	task.spawn(function()
 		while true do
 			lastPageNum = pagesAmount
+			if nextPrev then
+				if pagesAmount <= 1 then
+					nextPrev.Visible = false
+				else
+					nextPrev.Visible = true
+				end
+			end
 			task.wait()
 		end
 	end)
@@ -1391,14 +2387,3 @@ function module:Init()
 
 	return lib
 end
-
-module:SetName("my very own cool script")
-module:SetVersion("0.0.1")
-module:SetSaveFileName("coolScript")
--- all the `Set` methods above can be changed even after initializing.
-
-local lib = module:Init()
-local page1 = lib:AddPage("Low Taper Fade")
-page1:AddButton({"Title","Desc","Action"},function(t) print("hi: "..tostring(t)) end, {"hi",true,true})
-local page2 = lib:AddPage("Sygau")
-page2:AddButton({"Gurt","Yo","Kevin"},function(t) print("gurted: "..tostring(t)) end, {"gurt",true,true})
