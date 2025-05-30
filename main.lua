@@ -2387,3 +2387,5 @@ function module:Init()
 
 	return lib
 end
+
+return module
