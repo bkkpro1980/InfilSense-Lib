@@ -2179,7 +2179,7 @@ local function createSlider(...)
 				end
 			end
 
-			runConn = runService.RenderStepped:Connect(function()
+			runConn = game:GetService("RunService").RenderStepped:Connect(function()
 				if isDragging and targetPos then
 					sliderThumb.Position = sliderThumb.Position:Lerp(targetPos, .15)
 				end
