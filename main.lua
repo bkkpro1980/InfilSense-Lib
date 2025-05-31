@@ -1477,8 +1477,8 @@ local function createTextBox(...)
 	local keybindlabel = Instance.new("TextLabel")
 
 	Button.Name = "TextBox"
-	Button.LayoutOrder = #targetPage:GetChildren()
-	Button.Parent = targetPage
+	Button.LayoutOrder = #mainPage:GetChildren()
+	Button.Parent = mainPage
 	Button.AnchorPoint = Vector2.new(.5, .5)
 	Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	Button.BackgroundTransparency = .9
@@ -1925,8 +1925,8 @@ local function createSlider(...)
 	local keybindlabelratio = Instance.new("UIAspectRatioConstraint")
 	
 	Button.Name = "Slider"
-	Button.LayoutOrder = #targetPage:GetChildren()
-	Button.Parent = targetPage
+	Button.LayoutOrder = #mainPage:GetChildren()
+	Button.Parent = mainPage
 	Button.AnchorPoint = Vector2.new(0.5, 0.5)
 	Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	Button.BackgroundTransparency = 0.9
