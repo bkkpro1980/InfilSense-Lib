@@ -1907,7 +1907,7 @@ local function createSlider(...)
 	local settings = args[5]
 	if not settings or type(settings) ~= "table" then warn("["..libName.."]: Invalid Arguments!"); return end
 	local sliderType = settings["sliderType"]
-	local defValue = settings["defValue"]
+	local defValue = settings["defVal"]
 	local lowVal = settings["lowVal"]
 	local maxVal = settings["maxVal"]
 	if not (defValue and lowVal and maxVal) then warn("["..libName.."]: Invalid Arguments!"); return end
