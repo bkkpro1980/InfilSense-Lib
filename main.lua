@@ -36,6 +36,7 @@ local lastPageNum
 local pagesAmount = 0
 local uiPages = {}
 local values = {}
+local savedData
 
 --[[ FILE SYSTEM FUNCTIONS \]]--
 local HttpService = game:GetService("HttpService")
@@ -1308,12 +1309,12 @@ local function createButton(...)
 		startupimageratio.Name = "ratio"
 		startupimageratio.Parent = startupimage
 
-		if isfile(saveFileLoc..".json") then
-			local config = loadConfig(saveFileLoc..".json")
-			config = config["Startup"] and config["Startup"][command] or nil
-			if config then
-				startupimage.Image = "rbxassetid://14187538370"
-			end
+		local config = savedData["Startup"] and savedData["Startup"][command]
+		if config == true then
+			startupimage.Image = "rbxassetid://14187538370"
+			task.spawn(function()
+				commandFunc(values[command])
+			end)
 		end
 	end
 
@@ -1354,15 +1355,13 @@ local function createButton(...)
 		keybindlabelratio.Name = "ratio"
 		keybindlabelratio.Parent = keybindlabel
 
-		if bind and isfile(saveFileLoc..".json") then
-			local config = loadConfig(saveFileLoc..".json")
-			config = config["Keybinds"] and config["Keybinds"][command] or "Nothing"
-			if config ~= "Nothing" and isValidKey(config) then
-				keybindlabel.Text = "Bound to: " .. tostring(config)
-				manageKeybind(command,commandFunc,stringToKeyCode(config))
-			else
-				keybindlabel.Text = "Click To Set A Keybind"
-			end
+		local config = savedData["Keybinds"] and savedData["Keybinds"][command]
+		if config and type(config) == "string" and isValidKey(config) then
+			keybindlabel.Text = "Bound to: " .. tostring(config)
+			local keyCode = stringToKeyCode(config)
+			task.spawn(function()
+				manageKeybind(command,commandFunc,keyCode)
+			end)
 		end
 	end
 	
@@ -1551,12 +1550,6 @@ local function createTextBox(...)
 	desc.TextTransparency = .1
 	desc.TextXAlignment = Enum.TextXAlignment.Left
 
-	if isfile("InfilSense.json") then
-		local config = loadConfig("InfilSense.json")
-		config = config["Keybinds"] and config["Keybinds"][command] or "Nothing"
-		keybindlabel.Text = "Bound to: " .. tostring(config)
-	end
-
 	if canStartup then
 		startup.Name = "startup"
 		startup.Parent = Button
@@ -1604,12 +1597,12 @@ local function createTextBox(...)
 		startupimageratio.Name = "ratio"
 		startupimageratio.Parent = startupimage
 
-		if isfile("InfilSense" .. ".json") then
-			local config = loadConfig("InfilSense.json")
-			config = config["Startup"] and config["Startup"][command] or nil
-			if config then
-				startupimage.Image = "rbxassetid://14187538370"
-			end
+		local config = savedData["Startup"] and savedData["Startup"][command]
+		if config == true then
+			startupimage.Image = "rbxassetid://14187538370"
+			task.spawn(function()
+				commandFunc(values[command])
+			end)
 		end
 	end
 
@@ -1649,6 +1642,15 @@ local function createTextBox(...)
 
 		keybindlabelratio.Name = "ratio"
 		keybindlabelratio.Parent = keybindlabel
+
+		local config = savedData["Keybinds"] and savedData["Keybinds"][command]
+		if config and type(config) == "string" and isValidKey(config) then
+			keybindlabel.Text = "Bound to: " .. tostring(config)
+			local keyCode = stringToKeyCode(config)
+			task.spawn(function()
+				manageKeybind(command,commandFunc,keyCode)
+			end)
+		end
 	end
 
 	task.spawn(function()
@@ -1725,6 +1727,7 @@ local function createTextBox(...)
 			end)
 		end
 	end)
+
 	return textbox
 end
 
@@ -2031,10 +2034,13 @@ local function createSlider(...)
 		keybindlabelratio.Name = "ratio"
 		keybindlabelratio.Parent = keybindlabel
 
-		if isfile(saveFileLoc..".json") then
-			local config = loadConfig(saveFileLoc..".json")
-			config = config["Keybinds"] and config["Keybinds"][command] or "Nothing"
+		local config = savedData["Keybinds"] and savedData["Keybinds"][command]
+		if config and type(config) == "string" and isValidKey(config) then
 			keybindlabel.Text = "Bound to: " .. tostring(config)
+			local keyCode = stringToKeyCode(config)
+			task.spawn(function()
+				manageKeybind(command,commandFunc,keyCode)
+			end)
 		end
 	end
 
@@ -2109,6 +2115,13 @@ local function createSlider(...)
 			keybind.Activated:Connect(function()
 				bindKey(capturingKey,connection,keybindlabel,command,commandFunc)
 			end)
+
+			local config = savedData["Keybinds"] and savedData["Keybinds"][command]
+			if config and type(config) == "string" and isValidKey(config) then
+				keybindlabel.Text = "Bound to: " .. tostring(config)
+				local keyCode = stringToKeyCode(config)
+				manageKeybind(command,commandFunc,keyCode)
+			end
 		end
 
 		local canActivate = true
@@ -2193,6 +2206,7 @@ end
 
 function module:Init()
 	initialize()
+	savedData = loadConfig(saveFileLoc..".json")
 
 	local lib = {}
 	lib.__index = lib
@@ -2247,6 +2261,14 @@ function module:Init()
 				return values[command]
 			end
 
+			function button:getId()
+				return command
+			end
+
+			function button:getFunc()
+				return commandFunc
+			end
+
 			return button
 		end
 
@@ -2283,6 +2305,14 @@ function module:Init()
 
 			function button:getValue()
 				return textbox.Text
+			end
+
+			function button:getId()
+				return command
+			end
+
+			function button:getFunc()
+				return commandFunc
 			end
 
 			return button
@@ -2324,6 +2354,14 @@ function module:Init()
 				return values[command]
 			end
 
+			function button:getId()
+				return command
+			end
+
+			function button:getFunc()
+				return commandFunc
+			end
+
 			return button
 		end
 
@@ -2361,6 +2399,14 @@ function module:Init()
 
 			function button:getValue()
 				return values[command]
+			end
+
+			function button:getId()
+				return command
+			end
+
+			function button:getFunc()
+				return commandFunc
 			end
 
 			return button
